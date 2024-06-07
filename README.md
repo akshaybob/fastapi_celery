@@ -2,8 +2,12 @@
 POC for fastapi celery webscraping
 
 Database setup:
-need to change URL in models.py for database acess
-
+ create .env file in same dir location
+ add 
+  CELERY_BROKER_URL=redis://localhost:6379/1
+  CELERY_RESULT_BACKEND=redis://localhost:6379/1
+  DATABASE_URL=postgresql://postgres:root@localhost:5432/postgres
+  
 creating Virtual Environment:
 py -m venv venv
 
