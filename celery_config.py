@@ -10,10 +10,6 @@ CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND')
 celery = Celery('tasks', broker=CELERY_BROKER_URL, backend=CELERY_RESULT_BACKEND)
 
 celery.conf.update(
-    task_routes={
-        'scheduler': {'queue': 'scheduler'},
-        'executor': {'queue': 'executor'},
-    },
     beat_schedule={
         'run-scheduler-daily': {
             'task': 'scheduler',
