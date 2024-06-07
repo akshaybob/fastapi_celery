@@ -2,7 +2,6 @@
 POC for fastapi celery webscraping
 
 
-
 Database setup:
  create .env file in same dir location
  
@@ -35,7 +34,7 @@ for run celery task:-
 
 terminal 1:
 
-  celery -A celery_app worker -Q scheduler,executor --loglevel=info 
+  celery -A celery_app worker  -l info -P eventlet 
 
 terminal 2:
 
