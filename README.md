@@ -1,6 +1,7 @@
 # fastapi_celery
 POC for fastapi celery webscraping
 
+system requirement: redis installed with system
 
 Database setup:
  create .env file in same dir location
