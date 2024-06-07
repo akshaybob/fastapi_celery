@@ -5,11 +5,14 @@ POC for fastapi celery webscraping
 
 Database setup:
  create .env file in same dir location
+ 
  add env variable as below:
 
  
   CELERY_BROKER_URL=redis://localhost:6379/1
+  
   CELERY_RESULT_BACKEND=redis://localhost:6379/1
+  
   DATABASE_URL=postgresql://postgres:root@localhost:5432/postgres
 
  
@@ -19,6 +22,7 @@ py -m venv venv
 
 
 activating env
+
 .\venv\Scripts\activate
 
 
