@@ -14,7 +14,7 @@ Base = declarative_base()
 
 
 class Task(Base):
-    __tablename__ = 'tasks'
+    _tablename_ = 'tasks'
     run_id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     date = Column(Date, default=datetime.utcnow().date())
     status = Column(String(30))
@@ -26,14 +26,14 @@ class Task(Base):
 
 
 class LegitimateSeller(Base):
-    __tablename__ = 'legitimate_sellers'
+    _tablename_ = 'legitimate_sellers'
     id = Column(Integer, primary_key=True, autoincrement=True)
-    site = Column(String(100))
-    ssp_domain_name = Column(String(200))
-    publisher_id = Column(String(200))
-    seller_relationship = Column(String(50))
+    site = Column(String(500))#100
+    ssp_domain_name = Column(String(500))#200
+    publisher_id = Column(String(500))#200
+    seller_relationship = Column(String(500))#50
     date = Column(Date, default=datetime.utcnow().date())
-    run_id = Column(String(30), ForeignKey('tasks.run_id'))
+    run_id = Column(String(200), ForeignKey('tasks.run_id'))# 30
     task = relationship('Task', back_populates='legitimate_sellers')
 
 
