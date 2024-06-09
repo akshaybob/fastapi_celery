@@ -49,10 +49,10 @@ class TaskModel(PydanticBaseModel):
     run_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     date: datetime = Field(default_factory=datetime.utcnow)
     status: str
-    error: str = None
-    started_at: Optional[datetime]
-    finished_at:Optional[datetime]
-    failed_at: datetime = None
+    error: Optional[str] = None
+    started_at: Optional[datetime] = None
+    finished_at: Optional[datetime] = None
+    failed_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True
@@ -63,7 +63,7 @@ class LegitimateSellerModel(PydanticBaseModel):
     site: str
     ssp_domain_name: str
     publisher_id: str
-    relationship: str
+    seller_relationship: str
     date: datetime = Field(default_factory=datetime.utcnow)
     run_id: str
 
