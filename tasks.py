@@ -1,4 +1,3 @@
-"""module deals with celery tasks"""
 import uuid
 import json
 import logging
@@ -7,7 +6,6 @@ from sqlalchemy.orm import Session
 from datetime import datetime
 from models import Task, LegitimateSeller, SessionLocal
 from celery_config import celery
-from schema import Status
 
 
 @celery.task(name='scheduler')
@@ -18,7 +16,7 @@ def scheduler():
         new_task = Task(
             run_id=str(uuid.uuid4()),
             date=datetime.utcnow().date(),
-            status=Status.SCHEDULED
+            status='SCHEDULED'
         )
         db.add(new_task)
         db.commit()
@@ -36,7 +34,7 @@ def executor():
     try:
         task = db.query(Task).filter_by(status='SCHEDULED').first()
         if task:
-            task.status = Status.STARTED
+            task.status = 'STARTED'
             task.started_at = datetime.utcnow()
             db.commit()
             logging.info(f"Started task with run_id: {task.run_id}")
@@ -55,7 +53,6 @@ def executor():
                             lines = [line for line in lines if ',' in line]
                             for line in lines:
                                 for index in range(len(lines)):
-
                                     line = lines[index]
                                     line = line.split(',')
                                     ssp_domain_name = line[0]
@@ -74,7 +71,7 @@ def executor():
                     logging.error(f"An error occurred processing {domain}: {e}")
 
             db.commit()
-            task.status = Status.FINISHED
+            task.status = 'FINISHED'
             task.finished_at = datetime.utcnow()
         else:
             logging.info("No scheduled tasks found.")
@@ -88,3 +85,4 @@ def executor():
             logging.error(f"Failed to commit changes to the database: {e}")
         finally:
             db.close()
+            
