@@ -14,7 +14,7 @@ Base = declarative_base()
 
 
 class Task(Base):
-    _tablename_ = 'tasks'
+    tablename = 'tasks'
     run_id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     date = Column(Date, default=datetime.utcnow().date())
     status = Column(String(30))
@@ -26,7 +26,7 @@ class Task(Base):
 
 
 class LegitimateSeller(Base):
-    _tablename_ = 'legitimate_sellers'
+    tablename = 'legitimate_sellers'
     id = Column(Integer, primary_key=True, autoincrement=True)
     site = Column(String(500))#100
     ssp_domain_name = Column(String(500))#200
