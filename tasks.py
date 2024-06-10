@@ -1,12 +1,14 @@
+"""module is deals with celery task defination"""
 import uuid
 import json
 import logging
 import urllib.request
 from sqlalchemy.orm import Session
 from datetime import datetime
-from models import Task, LegitimateSeller, SessionLocal
+from models import Task, LegitimateSeller
 from celery_config import celery
 from models import TaskStatus
+from database import SessionLocal
 
 
 @celery.task(name='scheduler')
