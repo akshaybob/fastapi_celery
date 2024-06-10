@@ -1,3 +1,4 @@
+"""Modules responsible for celery job run"""
 from celery_config import celery
 import tasks
 
