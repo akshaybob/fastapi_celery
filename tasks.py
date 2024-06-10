@@ -51,20 +51,22 @@ def executor():
                             lines = response.read().decode('utf-8').splitlines()
                             logging.info(f"Lines from {domain}: {lines}")
                             lines = [line for line in lines if ',' in line]
-                            line = lines[0]
-                            line = line.split(',')
-                            ssp_domain_name = line[0]
-                            publisher_id = line[1]
-                            seller_relationship = line[2]
-                            new_seller = LegitimateSeller(
-                                site=domain,
-                                ssp_domain_name=ssp_domain_name,
-                                publisher_id=publisher_id,
-                                seller_relationship=seller_relationship,
-                                date=datetime.utcnow().date(),
-                                run_id=task.run_id
-                            )
-                            db.add(new_seller)
+                            for line in lines:
+                                for index in range(len(lines)):
+                                    line = lines[index]
+                                    line = line.split(',')
+                                    ssp_domain_name = line[0]
+                                    publisher_id = line[1]
+                                    seller_relationship = line[2]
+                                    new_seller = LegitimateSeller(
+                                        site=domain,
+                                        ssp_domain_name=ssp_domain_name,
+                                        publisher_id=publisher_id,
+                                        seller_relationship=seller_relationship,
+                                        date=datetime.utcnow().date(),
+                                        run_id=task.run_id
+                                    )
+                                    db.add(new_seller)
                 except Exception as e:
                     logging.info(f"An error occurred processing {domain}: {e}")
 
