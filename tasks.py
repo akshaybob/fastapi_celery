@@ -1,79 +1,88 @@
-import os
 import uuid
-from sqlalchemy import create_engine, Column, String, Date, DateTime, Enum, Text, Integer, ForeignKey
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship, sessionmaker
+import json
+import logging
+import urllib.request
+from sqlalchemy.orm import Session
 from datetime import datetime
-from pydantic import BaseModel as PydanticBaseModel, Field
-from typing import Optional
-from dotenv import load_dotenv
-import enum
-
-load_dotenv()
-
-Base = declarative_base()
+from models import Task, LegitimateSeller, SessionLocal
+from celery_config import celery
+from models import TaskStatus
 
 
-class TaskStatus(enum.Enum):
-    SCHEDULED = 'SCHEDULED'
-    STARTED = 'STARTED'
-    FAILED = 'FAILED'
-    FINISHED = 'FINISHED'
+@celery.task(name='scheduler')
+def scheduler():
+    logging.info('schedular called')
+    db: Session = SessionLocal()
+    try:
+        new_task = Task(
+            run_id=str(uuid.uuid4()),
+            date=datetime.utcnow().date(),
+            status=TaskStatus.SCHEDULED
+        )
+        db.add(new_task)
+        db.commit()
+        logging.info(f"Scheduled new task with run_id: {new_task.run_id}")
+    except Exception as e:
+        db.rollback()
+        logging.error(f"Failed to schedule new task: {e}")
+    finally:
+        db.close()
 
 
-class Task(Base):
-    _tablename_ = 'tasks'
-    run_id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    date = Column(Date, default=datetime.utcnow().date())
-    status = Column(Enum(TaskStatus), default=TaskStatus.SCHEDULED)
-    error = Column(Text, nullable=True)
-    started_at = Column(DateTime, nullable=True)
-    finished_at = Column(DateTime, nullable=True)
-    failed_at = Column(DateTime, nullable=True)
-    legitimate_sellers = relationship('LegitimateSeller', back_populates='task')
+@celery.task(name='executor')
+def executor():
+    db: Session = SessionLocal()
+    try:
+        task = db.query(Task).filter_by(status=TaskStatus.SCHEDULED).first()
+        if task:
+            task.status = TaskStatus.STARTED
+            task.started_at = datetime.utcnow()
+            db.commit()
+            logging.info(f"Started task with run_id: {task.run_id}")
 
+            with open('sites.json') as f:
+                sites = json.load(f)["sites"]
+                logging.info(f"Processing sites: {sites}")
 
-class LegitimateSeller(Base):
-    _tablename_ = 'legitimate_sellers'
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    site = Column(String(500))#100
-    ssp_domain_name = Column(String(500))#200
-    publisher_id = Column(String(500))#200
-    seller_relationship = Column(String(500))#50
-    date = Column(Date, default=datetime.utcnow().date())
-    run_id = Column(String(200), ForeignKey('tasks.run_id'))# 30
-    task = relationship('Task', back_populates='legitimate_sellers')
+            for domain in sites:
+                url = f"https://{domain}/ads.txt"
+                try:
+                    with urllib.request.urlopen(url) as response:
+                        if response.getcode() == 200:
+                            lines = response.read().decode('utf-8').splitlines()
+                            logging.info(f"Lines from {domain}: {lines}")
+                            lines = [line for line in lines if ',' in line]
+                            for line in lines:
+                                for index in range(len(lines)):
+                                    line = lines[index]
+                                    line = line.split(',')
+                                    ssp_domain_name = line[0]
+                                    publisher_id = line[1]
+                                    seller_relationship = line[2]
+                                    new_seller = LegitimateSeller(
+                                        site=domain,
+                                        ssp_domain_name=ssp_domain_name,
+                                        publisher_id=publisher_id,
+                                        seller_relationship=seller_relationship,
+                                        date=datetime.utcnow().date(),
+                                        run_id=task.run_id
+                                    )
+                                    db.add(new_seller)
+                except Exception as e:
+                    logging.error(f"An error occurred processing {domain}: {e}")
 
-
-DATABASE_URL =os.getenv('DATABASE_URL')
-
-engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-Base.metadata.create_all(bind=engine)
-
-
-class TaskModel(PydanticBaseModel):
-    run_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    date: datetime = Field(default_factory=datetime.utcnow)
-    status: str
-    error: Optional[str] = None
-    started_at: Optional[datetime] = None
-    finished_at: Optional[datetime] = None
-    failed_at: Optional[datetime] = None
-
-    class Config:
-        from_attributes = True
-
-
-class LegitimateSellerModel(PydanticBaseModel):
-    id: int
-    site: str
-    ssp_domain_name: str
-    publisher_id: str
-    seller_relationship: str
-    date: datetime = Field(default_factory=datetime.utcnow)
-    run_id: str
-
-    class Config:
-        from_attributes = True
+            db.commit()
+            task.status = TaskStatus.FINISHED
+            task.finished_at = datetime.utcnow()
+        else:
+            logging.info("No scheduled tasks found.")
+    except Exception as e:
+        db.rollback()
+        logging.error(f"Failed to process task: {e}")
+    finally:
+        try:
+            db.commit()
+        except Exception as e:
+            logging.error(f"Failed to commit changes to the database: {e}")
+        finally:
+            db.close()
