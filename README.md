@@ -1,27 +1,25 @@
 # fastapi_celery
 POC for fastapi celery webscraping
 
-system requirement: redis installed with system
+system requirement: 
+1.redis installed with system
+2.postgres database
 
 Database setup:
- create .env file in same dir location
- 
- add env variable as below:
+ 1.create .env file in same dir location
+ (sample is given in repository)
+ 2.add env variable as below:
 
- 
-  CELERY_BROKER_URL=redis://localhost:6379/1
-  
-  CELERY_RESULT_BACKEND=redis://localhost:6379/1
-  
-  DATABASE_URL=postgresql://postgres:root@localhost:5432/postgres
+CELERY_BROKER_URL=redis://localhost:6379/1
+CELERY_RESULT_BACKEND=redis://localhost:6379/1
+DATABASE_URL=postgresql://postgres:root@localhost:5432/postgres
 
  
 creating Virtual Environment:
 py -m venv venv
 
 
-
-activating env
+activating env:
 
 .\venv\Scripts\activate
 
