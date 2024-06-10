@@ -26,7 +26,7 @@ async def get_tasks_by_date(date: datetime, db: Session = Depends(get_db)):
 
 @app.get("/legitimate_sellers", response_model=List[LegitimateSellerModel])
 async def get_legitimate_sellers(domain: str, db: Session = Depends(get_db)):
-    return db.query(LegitimateSeller).filter(LegitimateSeller.domain == domain).all()
+    return db.query(LegitimateSeller).filter(LegitimateSeller.ssp_domain_name == domain).all()
 
 
 @app.get("/stats")
