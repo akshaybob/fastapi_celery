@@ -1,17 +1,17 @@
+"""Module deals with running project for expossing Api's"""
 from fastapi import FastAPI, HTTPException, Depends
 from sqlalchemy.orm import Session
-from models import Task, LegitimateSeller, Base, TaskModel, LegitimateSellerModel, SessionLocal
+from schemas import  TaskModel, LegitimateSellerModel
 from typing import List
 from datetime import datetime
+from database import get_db
+
+from database import engine, Base
+from models import Task, LegitimateSeller
+
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 
 @app.get("/tasks", response_model=List[TaskModel])
@@ -41,3 +41,4 @@ async def get_stats(from_date: datetime, to_date: datetime, db: Session = Depend
 if _name_ == "__main__":
     import uvicorn
     uvicorn.run("main:app", port=8000, reload=True)
+
