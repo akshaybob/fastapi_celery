@@ -25,7 +25,7 @@ def scheduler():
         logging.info(f"Scheduled new task with run_id: {new_task.run_id}")
     except Exception as e:
         db.rollback()
-        logging.info(f"Failed to schedule new task: {e}")
+        logging.error(f"Failed to schedule new task: {e}")
     finally:
         db.close()
 
