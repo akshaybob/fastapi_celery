@@ -1,6 +1,9 @@
-import os
+"""Module delas with Celery configuration """
 from celery import Celery
+import os
 from dotenv import load_dotenv
+from celery.schedules import crontab
+from datetime import timedelta
 
 load_dotenv()
 
@@ -13,11 +16,11 @@ celery.conf.update(
     beat_schedule={
         'run-scheduler-daily': {
             'task': 'scheduler',
-            'schedule': 100.0,  # Run daily 86400.0
+            'schedule': crontab(hour=0, minute=0),
         },
         'run-executor-every-5-mins': {
             'task': 'executor',
-            'schedule': 300.0,  # Run every 5 minutes
+            'schedule': timedelta(minutes=5),
         },
     },
     timezone='UTC'
