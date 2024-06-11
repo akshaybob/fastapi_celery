@@ -20,7 +20,7 @@ celery.conf.update(
         },
         'run-executor-every-5-mins': {
             'task': 'executor',
-            'schedule': timedelta(minutes=5),
+            'schedule': crontab(minute='*/5'),
         },
     },
     timezone='UTC'
